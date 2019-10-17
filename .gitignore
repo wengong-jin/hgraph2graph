@@ -1,0 +1,7 @@
+data
+*.pyc
+*model.iter*
+*LOG*
+results*
+model.*
+splits/

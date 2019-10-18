@@ -2,9 +2,9 @@ import torch
 import torch.nn as nn
 import rdkit.Chem as Chem
 import torch.nn.functional as F
-from .nnutils import *
-from .mol_graph import MolGraph
-from .rnn import GRU, LSTM
+from hgraph.nnutils import *
+from hgraph.mol_graph import MolGraph
+from hgraph.rnn import GRU, LSTM
 
 class MPNEncoder(nn.Module):
 

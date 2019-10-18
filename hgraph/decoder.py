@@ -2,10 +2,10 @@ import torch
 import torch.nn as nn
 import rdkit.Chem as Chem
 import torch.nn.functional as F
-from .nnutils import *
-from .encoder import IncHierMPNEncoder
-from .mol_graph import MolGraph
-from .inc_graph import IncTree, IncGraph
+from hgraph.nnutils import *
+from hgraph.encoder import IncHierMPNEncoder
+from hgraph.mol_graph import MolGraph
+from hgraph.inc_graph import IncTree, IncGraph
 
 class HTuple():
     def __init__(self, node=None, mess=None, vmask=None, emask=None):

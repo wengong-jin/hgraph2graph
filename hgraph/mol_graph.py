@@ -2,8 +2,8 @@ import torch
 import rdkit
 import rdkit.Chem as Chem
 import networkx as nx
-from .chemutils import *
-from .nnutils import *
+from hgraph.chemutils import *
+from hgraph.nnutils import *
 
 add = lambda x,y : x + y if type(x) is int else (x[0] + y, x[1] + y)
 

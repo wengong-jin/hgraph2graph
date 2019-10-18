@@ -17,7 +17,6 @@ lg.setLevel(rdkit.RDLogger.CRITICAL)
 parser = argparse.ArgumentParser()
 parser.add_argument('--test', required=True)
 parser.add_argument('--vocab', required=True)
-parser.add_argument('--old_vocab', required=True)
 parser.add_argument('--atom_vocab', default=common_atom_vocab)
 parser.add_argument('--model', required=True)
 
@@ -40,8 +39,7 @@ args.enum_root = True
 
 args.test = [line.strip("\r\n ") for line in open(args.test)]
 vocab = [x.strip("\r\n ").split() for x in open(args.vocab)] 
-old_vocab = [x.strip("\r\n ") for x in open(args.old_vocab)] 
-args.vocab = PairVocab(old_vocab, vocab) #workaround, set is different between py2 and 3.
+args.vocab = PairVocab(vocab) 
 
 model = HierVGNN(args).cuda()
 model.load_state_dict(torch.load(args.model))

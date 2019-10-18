@@ -2,15 +2,16 @@ import torch
 import torch.nn as nn
 import rdkit.Chem as Chem
 import torch.nn.functional as F
-from .mol_graph import MolGraph
-from .encoder import HierMPNEncoder
-from .decoder import HierMPNDecoder
-from .nnutils import *
+from hgraph.mol_graph import MolGraph
+from hgraph.encoder import HierMPNEncoder
+from hgraph.decoder import HierMPNDecoder
+from hgraph.nnutils import *
 
 def make_cuda(tensors):
     tree_tensors, graph_tensors = tensors
-    tree_tensors = [torch.tensor(x).cuda().long() for x in tree_tensors[:-1]] + [tree_tensors[-1]]
-    graph_tensors = [torch.tensor(x).cuda().long() for x in graph_tensors[:-1]] + [graph_tensors[-1]]
+    make_tensor = lambda x: x if type(x) is torch.Tensor else torch.tensor(x)
+    tree_tensors = [make_tensor(x).cuda().long() for x in tree_tensors[:-1]] + [tree_tensors[-1]]
+    graph_tensors = [make_tensor(x).cuda().long() for x in graph_tensors[:-1]] + [graph_tensors[-1]]
     return tree_tensors, graph_tensors
 
 class HierVAE(nn.Module):

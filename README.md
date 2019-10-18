@@ -1,5 +1,7 @@
 # Hierarchical Graph-to-Graph Translation for Molecules
 
+Our paper is at https://arxiv.org/abs/1907.11223
+
 ## Installation
 First install the dependencies via conda:
  * PyTorch >= 1.0.0

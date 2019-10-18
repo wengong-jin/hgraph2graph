@@ -1,12 +1,14 @@
 # Hierarchical Graph-to-Graph Translation for Molecules
 
 ## Installation
-Dependencies:
+First install the dependencies via conda:
  * PyTorch >= 1.0.0
  * networkx
  * RDKit
  * numpy
  * Python >= 3.6
+
+And then run `pip install .`
 
 ## Data Format
 * The training file should contain pairs of molecules (molA, molB) that are similar to each other but molB has better chemical properties. Please see `data/qed/train_pairs.txt`.

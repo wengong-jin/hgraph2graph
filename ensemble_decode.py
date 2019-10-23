@@ -21,9 +21,10 @@ parser.add_argument('--vocab', required=True)
 parser.add_argument('--atom_vocab', default=common_atom_vocab)
 parser.add_argument('--model_dir', required=True)
 
-parser.add_argument('--num_decode', type=int, default=10)
+parser.add_argument('--num_decode', type=int, default=100)
 parser.add_argument('--seed', type=int, default=1)
 parser.add_argument('--min_similarity', type=float, default=0.4)
+parser.add_argument('--max_epoch', type=int, default=10)
 
 parser.add_argument('--rnn_type', type=str, default='LSTM')
 parser.add_argument('--hidden_size', type=int, default=250)
@@ -51,6 +52,9 @@ torch.cuda.manual_seed(args.seed)
 all_outcomes = defaultdict(list)
 for fn in os.listdir(args.model_dir):
     if not fn.startswith('model'): continue
+    epoch = int(fn.split('.')[1])
+    if epoch > args.max_epoch or epoch == 0: continue
+
     torch.manual_seed(args.seed)
     fn = os.path.join(args.model_dir, fn)
     model.load_state_dict(torch.load(fn))

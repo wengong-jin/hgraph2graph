@@ -39,7 +39,7 @@ parser.add_argument('--lr', type=float, default=1e-3)
 parser.add_argument('--clip_norm', type=float, default=20.0)
 parser.add_argument('--beta', type=float, default=0.3)
 
-parser.add_argument('--epoch', type=int, default=20)
+parser.add_argument('--epoch', type=int, default=12)
 parser.add_argument('--anneal_rate', type=float, default=0.9)
 parser.add_argument('--print_iter', type=int, default=50)
 parser.add_argument('--save_iter', type=int, default=-1)

@@ -4,12 +4,13 @@ import torch.optim as optim
 import torch.optim.lr_scheduler as lr_scheduler
 from torch.utils.data import DataLoader
 
-import math, random, sys
+import rdkit
+import math, random, sys, os
 import numpy as np
 import argparse
 
 from hgraph import *
-import rdkit
+from collections import defaultdict
 
 lg = rdkit.RDLogger.logger() 
 lg.setLevel(rdkit.RDLogger.CRITICAL)
@@ -18,10 +19,11 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--test', required=True)
 parser.add_argument('--vocab', required=True)
 parser.add_argument('--atom_vocab', default=common_atom_vocab)
-parser.add_argument('--model', required=True)
+parser.add_argument('--model_dir', required=True)
 
-parser.add_argument('--num_decode', type=int, default=20)
+parser.add_argument('--num_decode', type=int, default=10)
 parser.add_argument('--seed', type=int, default=1)
+parser.add_argument('--min_similarity', type=float, default=0.4)
 
 parser.add_argument('--rnn_type', type=str, default='LSTM')
 parser.add_argument('--hidden_size', type=int, default=250)
@@ -42,22 +44,32 @@ vocab = [x.strip("\r\n ").split() for x in open(args.vocab)]
 args.vocab = PairVocab(vocab) 
 
 model = HierVGNN(args).cuda()
-model.load_state_dict(torch.load(args.model))
-model.eval()
-
-dataset = MolEnumRootDataset(args.test, args.vocab, args.atom_vocab)
-loader = DataLoader(dataset, batch_size=1, shuffle=False, num_workers=0, collate_fn=lambda x:x[0])
 
 torch.manual_seed(args.seed)
 torch.cuda.manual_seed(args.seed)
-with torch.no_grad():
-    for i,batch in enumerate(loader):
-        smiles = args.test[i]
-        if batch is None:
-            for k in range(args.num_decode):
-                print(smiles, smiles)
-        else:
-            new_mols = model.translate(batch[1], args.num_decode, args.enum_root)
-            for k in range(args.num_decode):
-                print(smiles, new_mols[k]) 
+
+all_outcomes = defaultdict(list)
+for fn in os.listdir(args.model_dir):
+    if not fn.startswith('model'): continue
+    torch.manual_seed(args.seed)
+    fn = os.path.join(args.model_dir, fn)
+    model.load_state_dict(torch.load(fn))
+    model.eval()
+
+    dataset = MolEnumRootDataset(args.test, args.vocab, args.atom_vocab)
+    loader = DataLoader(dataset, batch_size=1, shuffle=False, num_workers=0, collate_fn=lambda x:x[0])
+
+    with torch.no_grad():
+        for i,batch in enumerate(loader):
+            x = args.test[i]
+            ylist = model.translate(batch[1], args.num_decode, args.enum_root)
+            outcomes = [restore_stereo(x,y) for y in set(ylist)]
+            outcomes = [(x,y,sim) for x,y,sim in outcomes if sim >= args.min_similarity]
+            all_outcomes[x].extend(outcomes)
+
+print('lead compound smiles,new compound smiles,similarity')
+for x, outcomes in all_outcomes.items():
+    outcomes = list(set(outcomes))
+    for x,y,sim in outcomes:
+        print('%s,%s,%.4f' % (x, y, sim))
 

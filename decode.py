@@ -49,7 +49,8 @@ dataset = MolEnumRootDataset(args.test, args.vocab, args.atom_vocab)
 loader = DataLoader(dataset, batch_size=1, shuffle=False, num_workers=0, collate_fn=lambda x:x[0])
 
 torch.manual_seed(args.seed)
-torch.cuda.manual_seed(args.seed)
+random.seed(args.seed)
+
 with torch.no_grad():
     for i,batch in enumerate(loader):
         smiles = args.test[i]

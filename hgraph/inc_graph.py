@@ -1,8 +1,8 @@
 import torch
 import rdkit.Chem as Chem
 import networkx as nx
-from .mol_graph import MolGraph
-from .chemutils import *
+from hgraph.mol_graph import MolGraph
+from hgraph.chemutils import *
 from collections import defaultdict
 
 class IncBase(object):

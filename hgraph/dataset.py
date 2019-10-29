@@ -34,6 +34,7 @@ class MolEnumRootDataset(Dataset):
         mol = Chem.MolFromSmiles(self.batches[idx])
         leaves = get_leaves(mol)
         smiles_list = set( [Chem.MolToSmiles(mol, rootedAtAtom=i, isomericSmiles=False) for i in leaves] )
+        smiles_list = sorted(list(smiles_list)) #To ensure reproducibility
 
         safe_list = []
         for s in smiles_list:

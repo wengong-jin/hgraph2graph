@@ -20,7 +20,7 @@ if __name__ == "__main__":
     data = [mol for line in sys.stdin for mol in line.split()]
     data = list(set(data))
 
-    ncpu = 10
+    ncpu = 15
     batch_size = len(data) // ncpu + 1
     batches = [data[i : i + batch_size] for i in range(0, len(data), batch_size)]
 

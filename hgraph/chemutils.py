@@ -142,7 +142,9 @@ def get_inter_label(mol, atoms, inter_atoms):
     new_mol = get_clique_mol(mol, atoms)
     if new_mol.GetNumBonds() == 0: 
         inter_atom = list(inter_atoms)[0]
-        return new_mol, [ (inter_atom, new_mol.GetAtomWithIdx(0).GetSymbol()) ]
+        for a in new_mol.GetAtoms():
+            a.SetAtomMapNum(0)
+        return new_mol, [ (inter_atom, Chem.MolToSmiles(new_mol)) ]
 
     inter_label = []
     for a in new_mol.GetAtoms():

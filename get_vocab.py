@@ -17,7 +17,7 @@ def process(data):
 
 if __name__ == "__main__":
 
-    data = [mol for line in sys.stdin for mol in line.split()]
+    data = [mol for line in sys.stdin for mol in line.split()[:2]]
     data = list(set(data))
 
     ncpu = 15

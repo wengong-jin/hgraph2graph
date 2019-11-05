@@ -25,7 +25,7 @@ class MolGraph(object):
         mol = self.mol
         n_atoms = mol.GetNumAtoms()
         if n_atoms == 1: #special case
-            return [(0,)], [0]
+            return [(0,)], [[0]]
 
         clusters = []
         for bond in mol.GetBonds():

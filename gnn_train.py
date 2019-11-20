@@ -22,6 +22,7 @@ parser.add_argument('--save_dir', required=True)
 parser.add_argument('--load_epoch', type=int, default=-1)
 
 parser.add_argument('--conditional', action='store_true')
+parser.add_argument('--novi', action='store_true')
 parser.add_argument('--cond_size', type=int, default=4)
 
 parser.add_argument('--rnn_type', type=str, default='LSTM')
@@ -52,6 +53,8 @@ args.vocab = PairVocab(vocab)
 
 if args.conditional:
     model = HierCondVGNN(args).cuda()
+elif args.novi:
+    model = HierGNN(args).cuda()
 else:
     model = HierVGNN(args).cuda()
 
@@ -98,7 +101,7 @@ for epoch in range(args.load_epoch + 1, args.epoch):
             meters *= 0
         
         if args.save_iter >= 0 and total_step % args.save_iter == 0:
-            n_iter = total_step / args.save_iter - 1
+            n_iter = total_step // args.save_iter - 1
             torch.save(model.state_dict(), args.save_dir + "/model." + str(n_iter))
             scheduler.step()
             print("learning rate: %.6f" % scheduler.get_lr()[0])

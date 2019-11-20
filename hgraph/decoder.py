@@ -288,7 +288,7 @@ class HierMPNDecoder(nn.Module):
             cand_vecs = cand_vecs.view(-1, 2, self.hidden_size).sum(dim=1)
         return cand_vecs
 
-    def decode(self, src_mol_vecs, fast_mode=False, max_decode_step=200, beam=5):
+    def decode(self, src_mol_vecs, greedy=True, max_decode_step=100, beam=5):
         src_root_vecs, src_tree_vecs, src_graph_vecs = src_mol_vecs
         batch_size = len(src_root_vecs)
 
@@ -335,12 +335,16 @@ class HierMPNDecoder(nn.Module):
 
             htree, hinter, hgraph = self.hmpn(tree_tensors, tree_tensors, graph_tensors, htree, hinter, hgraph, subtree, subgraph)
             topo_scores = self.get_topo_score(src_tree_vecs, batch_idx, htree.node.index_select(0, subtree[0]))
-            topo_preds = topo_scores.tolist()
+            topo_scores = torch.sigmoid(topo_scores)
+            if greedy:
+                topo_preds = topo_scores.tolist()
+            else:
+                topo_preds = torch.bernoulli(topo_scores).tolist()
 
             new_mess = []
             expand_list = []
             for i,bid in enumerate(batch_list):
-                if topo_preds[i] > 0 and tree_batch.can_expand(stack[bid][-1]):
+                if topo_preds[i] > 0.5 and tree_batch.can_expand(stack[bid][-1]):
                     expand_list.append( (len(new_mess), bid) )
                     new_node = tree_batch.add_node() #new node label is yet to be predicted
                     edge_feature = batch_idx.new_tensor( [stack[bid][-1], new_node, 0] ) #parent to child is 0
@@ -366,12 +370,16 @@ class HierMPNDecoder(nn.Module):
                 expand_idx = batch_idx.new_tensor( expand_list )
                 forward_mess = cur_mess.index_select(0, idx_in_mess)
                 cls_scores, icls_scores = self.get_cls_score(src_tree_vecs, expand_idx, forward_mess, None)
-                cls_topk, icls_topk = hier_topk(cls_scores, icls_scores, self.vocab, beam)
+                scores, cls_topk, icls_topk = hier_topk(cls_scores, icls_scores, self.vocab, beam)
+                if not greedy:
+                    scores = torch.exp(scores) #score is output of log_softmax
+                    shuf_idx = torch.multinomial(scores, beam, replacement=True).tolist()
 
             for i,bid in enumerate(expand_list):
                 new_node, fa_node = stack[bid][-1], stack[bid][-2]
                 success = False
-                for kk in range(beam): #try until one is chemically valid
+                cls_beam = range(beam) if greedy else shuf_idx[i]
+                for kk in cls_beam: #try until one is chemically valid
                     if success: break
                     clab, ilab = cls_topk[i][kk], icls_topk[i][kk]
                     node_feature = batch_idx.new_tensor( [clab, ilab] )
@@ -397,7 +405,7 @@ class HierMPNDecoder(nn.Module):
 
                     for inter_label,_ in sorted_cands:
                         inter_label = list(zip(inter_label, attach_points))
-                        if fast_mode or graph_batch.try_add_mol(bid, ismiles, inter_label):
+                        if graph_batch.try_add_mol(bid, ismiles, inter_label):
                             new_atoms, new_bonds, attached = graph_batch.add_mol(bid, ismiles, inter_label, nth_child)
                             tree_batch.register_cgraph(new_node, new_atoms, new_bonds, attached)
                             tree_batch.update_attached(fa_node, inter_label)

@@ -21,6 +21,8 @@ parser.add_argument('--atom_vocab', default=common_atom_vocab)
 parser.add_argument('--model', required=True)
 
 parser.add_argument('--num_decode', type=int, default=20)
+parser.add_argument('--sample', action='store_true')
+parser.add_argument('--novi', action='store_true')
 parser.add_argument('--seed', type=int, default=1)
 
 parser.add_argument('--rnn_type', type=str, default='LSTM')
@@ -36,12 +38,17 @@ parser.add_argument('--dropout', type=float, default=0.0)
 
 args = parser.parse_args()
 args.enum_root = True
+args.greedy = not args.sample
 
 args.test = [line.strip("\r\n ") for line in open(args.test)]
 vocab = [x.strip("\r\n ").split() for x in open(args.vocab)] 
 args.vocab = PairVocab(vocab) 
 
-model = HierVGNN(args).cuda()
+if args.novi:
+    model = HierGNN(args).cuda()
+else:
+    model = HierVGNN(args).cuda()
+
 model.load_state_dict(torch.load(args.model))
 model.eval()
 
@@ -58,7 +65,7 @@ with torch.no_grad():
             for k in range(args.num_decode):
                 print(smiles, smiles)
         else:
-            new_mols = model.translate(batch[1], args.num_decode, args.enum_root)
+            new_mols = model.translate(batch[1], args.num_decode, args.enum_root, args.greedy)
             for k in range(args.num_decode):
                 print(smiles, new_mols[k]) 
 

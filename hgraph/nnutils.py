@@ -81,5 +81,5 @@ def hier_topk(cls_scores, icls_scores, vocab, topk):
     batch_index = cls_topk.new_tensor([[i] * topk for i in range(batch_size)])
     cls_topk = cls_topk[batch_index, topk_index]
     icls_topk = icls_topk[batch_index, topk_index]
-    return cls_topk.tolist(), icls_topk.tolist()
+    return topk_scores, cls_topk.tolist(), icls_topk.tolist()
     

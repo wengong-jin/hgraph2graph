@@ -1,6 +1,7 @@
 import sys
 import argparse
 import numpy as np
+from props import *
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--num_decode', type=int, default=20)

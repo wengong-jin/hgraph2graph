@@ -88,7 +88,7 @@ class IncTree(IncBase):
 
 class IncGraph(IncBase):
 
-    def __init__(self, avocab, batch_size, node_fdim, edge_fdim, max_nodes=100, max_edges=200, max_nb=10):
+    def __init__(self, avocab, batch_size, node_fdim, edge_fdim, max_nodes=100, max_edges=300, max_nb=10):
         super(IncGraph, self).__init__(batch_size, node_fdim, edge_fdim, max_nodes, max_edges, max_nb)
         self.avocab = avocab
         self.mol = Chem.RWMol()

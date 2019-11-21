@@ -63,7 +63,7 @@ class IncGraph(IncBase):
 
     def get_mol(self):
         mol_list = [None] * len(self.batch)
-        for batch_idx, batch_atoms in self.batch.iteritems():
+        for batch_idx, batch_atoms in self.batch.items():
             mol = get_sub_mol(self.mol, batch_atoms)
             mol = sanitize(mol, kekulize=False)
             if mol is None: 

@@ -1,6 +1,6 @@
 # Atom-by-Atom Translation Baseline
 
-Our paper is at https://arxiv.org/abs/1907.11223
+Description of atom-by-atom translation baseline is in the appendix of our paper (https://arxiv.org/abs/1907.11223)
 
 1. Train the model:
 ```

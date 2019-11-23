@@ -41,11 +41,6 @@ python gnn_train.py --train train_processed/ --vocab data/qed/vocab.txt --save_d
 python ensemble_decode.py --test data/qed/valid.txt --vocab data/qed/vocab.txt --model_dir models/ > results.csv
 ```
 
-If you want a faster decoding for debugging purposes, run
-```
-python ensemble_decode.py --test data/qed/valid.txt --vocab data/qed/vocab.txt --model_dir models/ --num_decode 20 > results.csv
-```
-
 The output is a CSV file having the following format:
 
 | lead compound smiles | new compound smiles | similarity | 
@@ -56,4 +51,9 @@ The output is a CSV file having the following format:
 | c1ccc(c2cncnc2)cc1[C@@]3(c4ccc(OC)cc4)N=C(N)OC3 | NC1=N[C@@](c2ccc(N)cc2)(c2ccc(-c3ccccc3)cc2)CO1 | 0.4717 |
 | c1ccc(c2cncnc2)cc1[C@@]3(c4ccc(OC)cc4)N=C(N)OC3 | COc1ccc([C@@H](N)c2cccc(-c3cncnc3)c2)cc1 | 0.4643 | 
 | c1ccc(c2cncnc2)cc1[C@@]3(c4ccc(OC)cc4)N=C(N)OC3 | NC1=N[C@@](c2cccc(N)c2)(c2cccc(-c3ccccc3)c2)CO1 | 0.5472 |
+
+If you want a faster decoding for debugging purposes, run
+```
+python decode.py --test data/qed/valid.txt --vocab data/qed/vocab.txt --model models/model.5 --num_decode 20 > results.csv
+```
 

@@ -32,6 +32,7 @@ parser.add_argument('--depth', type=int, default=20)
 parser.add_argument('--diter', type=int, default=3)
 
 args = parser.parse_args()
+args.enum_root = True
 
 args.test = [line.strip("\r\n ") for line in open(args.test)]
 

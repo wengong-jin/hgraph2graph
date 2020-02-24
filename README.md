@@ -1,6 +1,6 @@
-# Hierarchical Graph-to-Graph Translation for Molecules
+# Hierarchical Generation of Molecular Graphs using Structural Motifs
 
-Our paper is at https://arxiv.org/abs/1907.11223
+Our paper is at https://arxiv.org/pdf/2002.03230.pdf
 
 ## Installation
 First install the dependencies via conda:
@@ -12,11 +12,14 @@ First install the dependencies via conda:
 
 And then run `pip install .`
 
-## Data Format
+## Polymer Generation
+The polymer generation code is in the `polymers/` folder.
+
+## Graph translation Data Format
 * The training file should contain pairs of molecules (molA, molB) that are similar to each other but molB has better chemical properties. Please see `data/qed/train_pairs.txt`.
 * The test file is a list of molecules to be optimized. Please see `data/qed/test.txt`.
 
-## Sample training procedure
+## Graph translation training procedure
 1. Extract substructure vocabulary from a given set of molecules:
 ```
 python get_vocab.py < data/qed/mols.txt > vocab.txt
@@ -36,24 +39,8 @@ Please replace `--train` and `--vocab` with training and vocab file.
 mkdir models/
 python gnn_train.py --train train_processed/ --vocab data/qed/vocab.txt --save_dir models/ 
 ```
-4. Make prediction on your lead compounds:
-```
-python ensemble_decode.py --test data/qed/valid.txt --vocab data/qed/vocab.txt --model_dir models/ > results.csv
-```
 
-The output is a CSV file having the following format:
-
-| lead compound smiles | new compound smiles | similarity | 
-| -------------------- | ------------------ | ---------- | 
-| c1ccc(c2cncnc2)cc1[C@@]3(c4ccc(OC)cc4)N=C(N)OC3 | COc1ccc([C@@]2(c3cccc(C#N)c3)COC(N)=N2)cc1 | 0.6364 | 
-| c1ccc(c2cncnc2)cc1[C@@]3(c4ccc(OC)cc4)N=C(N)OC3 | NC1=N[C@@](c2cccc(Cl)c2)(c2cccc(-c3ccccc3)c2)CO1 | 0.5273 | 
-| c1ccc(c2cncnc2)cc1[C@@]3(c4ccc(OC)cc4)N=C(N)OC3 | CCOc1ccc([C@@]2([C@]3(c4ccc(OC)cc4)COC(N)=N3)COC(N)=N2)cc1 | 0.4310 |
-| c1ccc(c2cncnc2)cc1[C@@]3(c4ccc(OC)cc4)N=C(N)OC3 | NC1=N[C@@](c2ccc(N)cc2)(c2ccc(-c3ccccc3)cc2)CO1 | 0.4717 |
-| c1ccc(c2cncnc2)cc1[C@@]3(c4ccc(OC)cc4)N=C(N)OC3 | COc1ccc([C@@H](N)c2cccc(-c3cncnc3)c2)cc1 | 0.4643 | 
-| c1ccc(c2cncnc2)cc1[C@@]3(c4ccc(OC)cc4)N=C(N)OC3 | NC1=N[C@@](c2cccc(N)c2)(c2cccc(-c3ccccc3)c2)CO1 | 0.5472 |
-
-If you want a faster decoding for debugging purposes, run
+4. Make prediction on your lead compounds (you can use any model checkpoint, here we use model.5 for illustration)
 ```
 python decode.py --test data/qed/valid.txt --vocab data/qed/vocab.txt --model models/model.5 --num_decode 20 > results.csv
 ```
-

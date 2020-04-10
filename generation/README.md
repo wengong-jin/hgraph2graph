@@ -19,7 +19,7 @@ mv tensor* train_processed/
 ```
 
 ## Training
-Train the generative model with KL regularization weight beta=0.1. You can change it by `--beta` argument.
+Train the generative model with KL regularization weight beta=0.1 and VAE latent dimension 24. You can change it by `--beta` and `--latent_size` argument.
 ```
 mkdir -p ckpt/tmp
 python gnn_train.py --train train_processed/ --vocab data/polymers/inter_vocab.txt --save_dir ckpt/tmp

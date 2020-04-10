@@ -28,11 +28,6 @@ def sanitize(mol, kekulize=True):
         mol = None
     return mol
 
-def load_polymers():
-    with open('/data/rsg/chemistry/wengong/hgraph2graph/polymers/poly_hgraph/polymers.txt') as f:
-        polymers = [line.split()[0] for line in f]
-    return set(polymers)
-
 def is_aromatic_ring(mol):
     if mol.GetNumAtoms() == mol.GetNumBonds(): 
         aroma_bonds = [b for b in mol.GetBonds() if b.GetBondType() == Chem.rdchem.BondType.AROMATIC]

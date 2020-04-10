@@ -40,6 +40,7 @@ args = parser.parse_args()
 args.test = [line.strip("\r\n ") for line in open(args.test)]
 vocab = [x.strip("\r\n ").split() for x in open(args.vocab)] 
 args.vocab = PairVocab(vocab) 
+MolGraph.load_fragments([x[0] for x in vocab])
 
 model = HierVAE(args).cuda()
 

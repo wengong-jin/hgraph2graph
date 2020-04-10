@@ -34,7 +34,7 @@ parser.add_argument('--dropout', type=float, default=0.0)
 
 parser.add_argument('--lr', type=float, default=1e-3)
 parser.add_argument('--clip_norm', type=float, default=20.0)
-parser.add_argument('--beta', type=float, default=0.3)
+parser.add_argument('--beta', type=float, default=0.1)
 
 parser.add_argument('--epoch', type=int, default=20)
 parser.add_argument('--anneal_rate', type=float, default=0.9)
@@ -46,6 +46,7 @@ print(args)
 
 vocab = [x.strip("\r\n ").split() for x in open(args.vocab)] 
 args.vocab = PairVocab(vocab)
+MolGraph.load_fragments([x[0] for x in vocab])
 
 model = HierVAE(args).cuda()
 

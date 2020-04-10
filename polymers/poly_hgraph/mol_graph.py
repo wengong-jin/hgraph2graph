@@ -8,11 +8,16 @@ from poly_hgraph.nnutils import *
 add = lambda x,y : x + y if type(x) is int else (x[0] + y, x[1] + y)
 add_none = lambda x,y : None if x is None else x + y 
 
+
 class MolGraph(object):
 
     BOND_LIST = [Chem.rdchem.BondType.SINGLE, Chem.rdchem.BondType.DOUBLE, Chem.rdchem.BondType.TRIPLE, Chem.rdchem.BondType.AROMATIC] 
     MAX_POS = 20
-    POLYMERS = load_polymers()
+    FRAGMENTS = None
+
+    @staticmethod
+    def load_fragments(fragments):
+        MolGraph.FRAGMENTS = set(fragments)
 
     def __init__(self, smiles):
         self.smiles = smiles
@@ -73,7 +78,7 @@ class MolGraph(object):
         fragments = find_fragments(self.mol)
 
         for fsmiles, fatoms in fragments:
-            if fsmiles not in MolGraph.POLYMERS: continue
+            if fsmiles not in MolGraph.FRAGMENTS: continue
             fclusters = [i for i,cls in enumerate(self.clusters) if set(cls) <= fatoms]
             assert len(set(fclusters) & visited) == 0
             hoptions.append(list(fatoms))

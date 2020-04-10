@@ -1,4 +1,6 @@
 import sys
+import argparse 
+from collections import Counter
 from poly_hgraph import *
 from rdkit import Chem
 from multiprocessing import Pool
@@ -15,16 +17,31 @@ def process(data):
                 vocab.add( (smiles, s) )
     return vocab
 
+
 if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--min_frequency', type=int, default=100)
+    parser.add_argument('--ncpu', type=int, default=1)
+    args = parser.parse_args()
 
     data = [mol for line in sys.stdin for mol in line.split()[:2]]
     data = list(set(data))
 
-    ncpu = 36
-    batch_size = len(data) // ncpu + 1
+    counter = Counter()
+    for smiles in data:
+        mol = get_mol(smiles)
+        fragments = find_fragments(mol)
+        for fsmiles, _ in fragments:
+            counter[fsmiles] += 1
+
+    fragments = [fragment for fragment,cnt in counter.most_common() if cnt >= args.min_frequency]
+    MolGraph.load_fragments(fragments)
+
+    batch_size = len(data) // args.ncpu + 1
     batches = [data[i : i + batch_size] for i in range(0, len(data), batch_size)]
 
-    pool = Pool(ncpu)
+    pool = Pool(args.ncpu)
     vocab_list = pool.map(process, batches)
     vocab = [(x,y) for vocab in vocab_list for x,y in vocab]
     vocab = list(set(vocab))

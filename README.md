@@ -12,8 +12,8 @@ First install the dependencies via conda:
 
 And then run `pip install .`
 
-## Polymer Generation
-The polymer generation code is in the `polymers/` folder.
+## Molecule Generation
+The molecule generation code is in the `generation/` folder.
 
 ## Graph translation Data Format
 * The training file should contain pairs of molecules (molA, molB) that are similar to each other but molB has better chemical properties. Please see `data/qed/train_pairs.txt`.

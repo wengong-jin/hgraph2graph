@@ -19,6 +19,7 @@ mv tensor* train_processed/
 ```
 
 ## Training
+Train the generative model with KL regularization weight beta=0.1. You can change it by `--beta` argument.
 ```
 mkdir -p ckpt/tmp
 python gnn_train.py --train train_processed/ --vocab data/polymers/inter_vocab.txt --save_dir ckpt/tmp
@@ -26,5 +27,5 @@ python gnn_train.py --train train_processed/ --vocab data/polymers/inter_vocab.t
 
 ## Sample Molecules
 ```
-python sample.py --vocab ../data/polymers/inter_vocab.txt --model ckpt/inter-h250z24b0.1/model.19
+python sample.py --vocab ../data/polymers/inter_vocab.txt --model ckpt/inter-h250z24b0.1/model.19 > outputs.txt
 ```

@@ -1,6 +1,6 @@
 # Molecule Generation
 
-This fold contains the molecule generation script. The polymer generation experiment in the paper can be reproduced through the following steps:
+This folder contains the molecule generation script. The polymer generation experiment in the paper can be reproduced through the following steps:
 
 ## Motif Extraction
 Extract substructure vocabulary from a given set of molecules:

@@ -20,8 +20,8 @@ mv tensor* train_processed/
 
 ## Training
 ```
-mkdir ckpt/
-python gnn_train.py --train train_processed/ --vocab data/polymers/inter_vocab.txt --save_dir ckpt/ 
+mkdir -p ckpt/tmp
+python gnn_train.py --train train_processed/ --vocab data/polymers/inter_vocab.txt --save_dir ckpt/tmp
 ```
 
 ## Sample Molecules

@@ -17,6 +17,15 @@ def process(data):
                 vocab.add( (smiles, s) )
     return vocab
 
+def fragment_process(data):
+    counter = Counter()
+    for smiles in data:
+        mol = get_mol(smiles)
+        fragments = find_fragments(mol)
+        for fsmiles, _ in fragments:
+            counter[fsmiles] += 1
+    return counter
+
 
 if __name__ == "__main__":
 
@@ -28,23 +37,24 @@ if __name__ == "__main__":
     data = [mol for line in sys.stdin for mol in line.split()[:2]]
     data = list(set(data))
 
-    counter = Counter()
-    for smiles in data:
-        mol = get_mol(smiles)
-        fragments = find_fragments(mol)
-        for fsmiles, _ in fragments:
-            counter[fsmiles] += 1
-
-    fragments = [fragment for fragment,cnt in counter.most_common() if cnt >= args.min_frequency]
-    MolGraph.load_fragments(fragments)
-
     batch_size = len(data) // args.ncpu + 1
     batches = [data[i : i + batch_size] for i in range(0, len(data), batch_size)]
+
+    pool = Pool(args.ncpu)
+    counter_list = pool.map(fragment_process, batches)
+    counter = Counter()
+    for cc in counter_list:
+        counter += cc
+    
+    fragments = [fragment for fragment,cnt in counter.most_common() if cnt >= args.min_frequency]
+    MolGraph.load_fragments(fragments)
 
     pool = Pool(args.ncpu)
     vocab_list = pool.map(process, batches)
     vocab = [(x,y) for vocab in vocab_list for x,y in vocab]
     vocab = list(set(vocab))
 
+    fragments = set(fragments)
     for x,y in sorted(vocab):
-        print(x, y)
+        cx = Chem.MolToSmiles(Chem.MolFromSmiles(x))  # dekekulize
+        print(x, y, cx in fragments)

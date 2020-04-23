@@ -37,8 +37,8 @@ parser.add_argument('--dropout', type=float, default=0.0)
 args = parser.parse_args()
 
 vocab = [x.strip("\r\n ").split() for x in open(args.vocab)] 
-args.vocab = PairVocab(vocab) 
-MolGraph.load_fragments([x[0] for x in vocab])
+MolGraph.load_fragments([x[0] for x in vocab if eval(x[-1])])
+args.vocab = PairVocab([(x,y) for x,y,_ in vocab])
 
 model = HierVAE(args).cuda()
 

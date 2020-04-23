@@ -32,8 +32,8 @@ if __name__ == "__main__":
 
     with open(args.vocab) as f:
         vocab = [x.strip("\r\n ").split() for x in f]
-    args.vocab = PairVocab(vocab, cuda=False)
-    MolGraph.load_fragments([x[0] for x in vocab])
+    MolGraph.load_fragments([x[0] for x in vocab if eval(x[-1])])
+    args.vocab = PairVocab([(x,y) for x,y,_ in vocab], cuda=False)
 
     pool = Pool(args.ncpu) 
     random.seed(1)

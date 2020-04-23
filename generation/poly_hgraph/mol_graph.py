@@ -17,6 +17,7 @@ class MolGraph(object):
 
     @staticmethod
     def load_fragments(fragments):
+        fragments = [Chem.MolToSmiles(Chem.MolFromSmiles(x)) for x in fragments]
         MolGraph.FRAGMENTS = set(fragments)
 
     def __init__(self, smiles):

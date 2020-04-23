@@ -67,7 +67,8 @@ def find_fragments(mol):
     for fragment in new_smiles.split('.'):
         fmol = Chem.MolFromSmiles(fragment)
         indices = set([atom.GetAtomMapNum() for atom in fmol.GetAtoms()])
-        set_atommap(fmol)
+        fmol = get_clique_mol(mol, indices)
+        fmol = sanitize(fmol, kekulize=False)
         fsmiles = Chem.MolToSmiles(fmol)
         hopts.append((fsmiles, indices))
     
@@ -175,18 +176,6 @@ def get_assm_cands(mol, atoms, inter_label, cluster, inter_size):
         cands = [pos] + [ (x,y) for x,y in cands if (rank[x],rank[y]) != (rank[pos[0]], rank[pos[1]]) ]
 
     return cands
-
-def get_hoption_mol(mol, atoms, inter_atoms):
-    new_mol = get_clique_mol(mol, atoms)
-    for a in new_mol.GetAtoms():
-        idx = idxfunc(a)
-        if idx in inter_atoms: a.SetAtomMapNum(1)
-        else: a.SetAtomMapNum(0)
-    return new_mol
-
-def get_hoption_smiles(mol, atoms):
-    new_mol = get_clique_mol(mol, atoms)
-    return get_smiles(set_atommap(new_mol))
 
 def get_inter_label(mol, atoms, inter_atoms, atom_cls):
     new_mol = get_clique_mol(mol, atoms)

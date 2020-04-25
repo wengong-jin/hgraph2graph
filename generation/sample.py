@@ -25,7 +25,7 @@ parser.add_argument('--nsample', type=int, default=10000)
 
 parser.add_argument('--rnn_type', type=str, default='LSTM')
 parser.add_argument('--hidden_size', type=int, default=250)
-parser.add_argument('--embed_size', type=int, default=200)
+parser.add_argument('--embed_size', type=int, default=250)
 parser.add_argument('--batch_size', type=int, default=20)
 parser.add_argument('--latent_size', type=int, default=24)
 parser.add_argument('--depthT', type=int, default=20)

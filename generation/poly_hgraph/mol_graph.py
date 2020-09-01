@@ -13,7 +13,7 @@ class MolGraph(object):
 
     BOND_LIST = [Chem.rdchem.BondType.SINGLE, Chem.rdchem.BondType.DOUBLE, Chem.rdchem.BondType.TRIPLE, Chem.rdchem.BondType.AROMATIC] 
     MAX_POS = 20
-    FRAGMENTS = None
+    FRAGMENTS = []
 
     @staticmethod
     def load_fragments(fragments):

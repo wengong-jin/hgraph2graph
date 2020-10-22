@@ -25,7 +25,7 @@ Please replace `data/qed/mols.txt` with your molecules data file.
 
 2. Preprocess training data:
 ```
-python preprocess.py --train data/qed/train_pairs.txt --vocab data/qed/vocab.txt --ncpu 16 < data/qed/train_pairs.txt
+python preprocess.py --train data/qed/train_pairs.txt --vocab data/qed/vocab.txt --ncpu 16
 mkdir train_processed
 mv tensor* train_processed/
 ```
@@ -36,24 +36,25 @@ Please replace `--train` and `--vocab` with training and vocab file.
 mkdir models/
 python gnn_train.py --train train_processed/ --vocab data/qed/vocab.txt --save_dir models/ 
 ```
+
 4. Make prediction on your lead compounds:
 ```
-python ensemble_decode.py --test data/qed/valid.txt --vocab data/qed/vocab.txt --model_dir models/ > results.csv
+python decode.py --test data/qed/valid.txt --vocab data/qed/vocab.txt --model models/model.5 --num_decode 20 > results.csv
 ```
 
-If you want a faster decoding for debugging purposes, run
+## Sample training procedure for conditional generation
+For conditional graph translation (QED + DRD2), you can first preprocess the data by:
 ```
-python ensemble_decode.py --test data/qed/valid.txt --vocab data/qed/vocab.txt --model_dir models/ --num_decode 20 > results.csv
+python preprocess.py --train data/multi-qed-drd2/train_pairs.txt --vocab data/multi-qed-drd2/vocab.txt --ncpu 16  --mode cond_pair
+mkdir train_processed
+mv tensor* train_processed/
 ```
-
-The output is a CSV file having the following format:
-
-| lead compound smiles | new compound smiles | similarity | 
-| -------------------- | ------------------ | ---------- | 
-| c1ccc(c2cncnc2)cc1[C@@]3(c4ccc(OC)cc4)N=C(N)OC3 | COc1ccc([C@@]2(c3cccc(C#N)c3)COC(N)=N2)cc1 | 0.6364 | 
-| c1ccc(c2cncnc2)cc1[C@@]3(c4ccc(OC)cc4)N=C(N)OC3 | NC1=N[C@@](c2cccc(Cl)c2)(c2cccc(-c3ccccc3)c2)CO1 | 0.5273 | 
-| c1ccc(c2cncnc2)cc1[C@@]3(c4ccc(OC)cc4)N=C(N)OC3 | CCOc1ccc([C@@]2([C@]3(c4ccc(OC)cc4)COC(N)=N3)COC(N)=N2)cc1 | 0.4310 |
-| c1ccc(c2cncnc2)cc1[C@@]3(c4ccc(OC)cc4)N=C(N)OC3 | NC1=N[C@@](c2ccc(N)cc2)(c2ccc(-c3ccccc3)cc2)CO1 | 0.4717 |
-| c1ccc(c2cncnc2)cc1[C@@]3(c4ccc(OC)cc4)N=C(N)OC3 | COc1ccc([C@@H](N)c2cccc(-c3cncnc3)c2)cc1 | 0.4643 | 
-| c1ccc(c2cncnc2)cc1[C@@]3(c4ccc(OC)cc4)N=C(N)OC3 | NC1=N[C@@](c2cccc(N)c2)(c2cccc(-c3ccccc3)c2)CO1 | 0.5472 |
-
+To train a model, run:
+```
+python gnn_train.py --train train_processed/ --vocab data/multi-qed-drd2/vocab.txt --save_dir models/ --conditional
+```
+Finally, translate test compounds by
+```
+python cond_decode.py --test data/multi-qed-drd2/valid.txt --vocab data/multi-qed-drd2/vocab.txt --mode 1,0,1,0 --model models/model.5 --num_decode 20 > results.csv
+```
+where `1,0,1,0` means high QED, high DRD2. Change it to `1,0,0,1` for high QED, low DRD2 and `0,1,1,0` for low QED, high DRD2.

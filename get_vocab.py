@@ -1,8 +1,8 @@
 import sys
+import argparse 
 from hgraph import *
 from rdkit import Chem
 from multiprocessing import Pool
-from collections import Counter
 
 def process(data):
     vocab = set()
@@ -11,26 +11,27 @@ def process(data):
         hmol = MolGraph(s)
         for node,attr in hmol.mol_tree.nodes(data=True):
             smiles = attr['smiles']
-            vocab[attr['label']] += 1
+            vocab.add( attr['label'] )
             for i,s in attr['inter_label']:
-                vocab[(smiles, s)] += 1
+                vocab.add( (smiles, s) )
     return vocab
 
 if __name__ == "__main__":
 
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--ncpu', type=int, default=1)
+    args = parser.parse_args()
+
     data = [mol for line in sys.stdin for mol in line.split()[:2]]
     data = list(set(data))
 
-    ncpu = 15
-    batch_size = len(data) // ncpu + 1
+    batch_size = len(data) // args.ncpu + 1
     batches = [data[i : i + batch_size] for i in range(0, len(data), batch_size)]
 
-    pool = Pool(ncpu)
+    pool = Pool(args.ncpu)
     vocab_list = pool.map(process, batches)
+    vocab = [(x,y) for vocab in vocab_list for x,y in vocab]
+    vocab = list(set(vocab))
 
-    vocab = Counter()
-    for c in vocab_list:
-        vocab |= c
-
-    for (x,y),c in vocab:
+    for x,y in sorted(vocab):
         print(x, y)

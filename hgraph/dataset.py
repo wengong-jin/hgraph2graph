@@ -74,6 +74,9 @@ class DataFolder(object):
         self.batch_size = batch_size
         self.shuffle = shuffle
 
+    def __len__(self):
+        return len(self.data_files) * 1000
+
     def __iter__(self):
         for fn in self.data_files:
             fn = os.path.join(self.data_folder, fn)

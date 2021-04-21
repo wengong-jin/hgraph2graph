@@ -22,7 +22,6 @@ parser.add_argument('--save_dir', required=True)
 parser.add_argument('--load_epoch', type=int, default=-1)
 
 parser.add_argument('--conditional', action='store_true')
-parser.add_argument('--novi', action='store_true')
 parser.add_argument('--cond_size', type=int, default=4)
 
 parser.add_argument('--rnn_type', type=str, default='LSTM')
@@ -53,8 +52,6 @@ args.vocab = PairVocab(vocab)
 
 if args.conditional:
     model = HierCondVGNN(args).cuda()
-elif args.novi:
-    model = HierGNN(args).cuda()
 else:
     model = HierVGNN(args).cuda()
 

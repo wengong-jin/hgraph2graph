@@ -2,6 +2,7 @@ import sys
 from hgraph import *
 from rdkit import Chem
 from multiprocessing import Pool
+from collections import Counter
 
 def process(data):
     vocab = set()
@@ -10,9 +11,9 @@ def process(data):
         hmol = MolGraph(s)
         for node,attr in hmol.mol_tree.nodes(data=True):
             smiles = attr['smiles']
-            vocab.add( attr['label'] )
+            vocab[attr['label']] += 1
             for i,s in attr['inter_label']:
-                vocab.add( (smiles, s) )
+                vocab[(smiles, s)] += 1
     return vocab
 
 if __name__ == "__main__":
@@ -26,8 +27,10 @@ if __name__ == "__main__":
 
     pool = Pool(ncpu)
     vocab_list = pool.map(process, batches)
-    vocab = [(x,y) for vocab in vocab_list for x,y in vocab]
-    vocab = list(set(vocab))
 
-    for x,y in sorted(vocab):
-        print(x, y)
+    vocab = Counter()
+    for c in vocab_list:
+        vocab |= c
+
+    for (x,y),c in vocab:
+        print(x, y, c)

@@ -7,6 +7,7 @@ from hgraph.encoder import HierMPNEncoder
 from hgraph.decoder import HierMPNDecoder
 from hgraph.nnutils import *
 
+
 def make_cuda(tensors):
     tree_tensors, graph_tensors = tensors
     make_tensor = lambda x: x if type(x) is torch.Tensor else torch.tensor(x)
@@ -14,43 +15,49 @@ def make_cuda(tensors):
     graph_tensors = [make_tensor(x).cuda().long() for x in graph_tensors[:-1]] + [graph_tensors[-1]]
     return tree_tensors, graph_tensors
 
-class HierGNN(nn.Module):
+
+class HierVAE(nn.Module):
 
     def __init__(self, args):
-        super(HierGNN, self).__init__()
+        super(HierVAE, self).__init__()
         self.encoder = HierMPNEncoder(args.vocab, args.atom_vocab, args.rnn_type, args.embed_size, args.hidden_size, args.depthT, args.depthG, args.dropout)
-        self.decoder = HierMPNDecoder(args.vocab, args.atom_vocab, args.rnn_type, args.embed_size, args.hidden_size, args.hidden_size, args.diterT, args.diterG, args.dropout, attention=True)
+        self.decoder = HierMPNDecoder(args.vocab, args.atom_vocab, args.rnn_type, args.embed_size, args.hidden_size, args.latent_size, args.diterT, args.diterG, args.dropout)
         self.encoder.tie_embedding(self.decoder.hmpn)
+        self.latent_size = args.latent_size
 
-    def encode(self, tensors):
-        tree_tensors, graph_tensors = tensors
+        self.R_mean = nn.Linear(args.hidden_size, args.latent_size)
+        self.R_var = nn.Linear(args.hidden_size, args.latent_size)
+
+    def rsample(self, z_vecs, W_mean, W_var, perturb=True):
+        batch_size = z_vecs.size(0)
+        z_mean = W_mean(z_vecs)
+        z_log_var = -torch.abs( W_var(z_vecs) )
+        kl_loss = -0.5 * torch.sum(1.0 + z_log_var - z_mean * z_mean - torch.exp(z_log_var)) / batch_size
+        epsilon = torch.randn_like(z_mean).cuda()
+        z_vecs = z_mean + torch.exp(z_log_var / 2) * epsilon if perturb else z_mean
+        return z_vecs, kl_loss
+
+    def sample(self, batch_size):
+        root_vecs = torch.randn(batch_size, self.latent_size).cuda()
+        return self.decoder.decode((root_vecs, root_vecs, root_vecs), greedy=True, max_decode_step=150)
+
+    def reconstruct(self, batch):
+        graphs, tensors, _ = batch
+        tree_tensors, graph_tensors = tensors = make_cuda(tensors)
         root_vecs, tree_vecs, _, graph_vecs = self.encoder(tree_tensors, graph_tensors)
-        tree_vecs = stack_pad_tensor( [tree_vecs[st : st + le] for st,le in tree_tensors[-1]] )
-        graph_vecs = stack_pad_tensor( [graph_vecs[st : st + le] for st,le in graph_tensors[-1]] )
-        return root_vecs, tree_vecs, graph_vecs
 
-    def translate(self, tensors, num_decode, enum_root, greedy):
-        tensors = make_cuda(tensors)
-        root_vecs, tree_vecs, graph_vecs = self.encode(tensors)
-        if enum_root:
-            repeat = num_decode // len(root_vecs)
-            modulo = num_decode % len(root_vecs)
-            root_vecs = torch.cat([root_vecs] * repeat + [root_vecs[:modulo]], dim=0)
-            tree_vecs = torch.cat([tree_vecs] * repeat + [tree_vecs[:modulo]], dim=0)
-            graph_vecs = torch.cat([graph_vecs] * repeat + [graph_vecs[:modulo]], dim=0)
-        else:
-            root_vecs = root_vecs.unsqueeze(0).expand(num_decode, -1)
-            tree_vecs = tree_vecs.unsqueeze(0).expand(num_decode, -1, -1)
-            graph_vecs = graph_vecs.unsqueeze(0).expand(num_decode, -1, -1)
+        root_vecs, root_kl = self.rsample(root_vecs, self.R_mean, self.R_var, perturb=False)
+        return self.decoder.decode((root_vecs, root_vecs, root_vecs), greedy=True, max_decode_step=150)
+       
+    def forward(self, graphs, tensors, orders, beta, perturb_z=True):
+        tree_tensors, graph_tensors = tensors = make_cuda(tensors)
 
-        return self.decoder.decode( (root_vecs, tree_vecs, graph_vecs), greedy=greedy)
+        root_vecs, tree_vecs, _, graph_vecs = self.encoder(tree_tensors, graph_tensors)
+        root_vecs, root_kl = self.rsample(root_vecs, self.R_mean, self.R_var, perturb_z)
+        kl_div = root_kl
 
-    def forward(self, x_graphs, x_tensors, y_graphs, y_tensors, y_orders, beta):
-        x_tensors = make_cuda(x_tensors)
-        y_tensors = make_cuda(y_tensors)
-        x_root_vecs, x_tree_vecs, x_graph_vecs = self.encode(x_tensors)
-        loss, wacc, iacc, tacc, sacc = self.decoder((x_root_vecs, x_tree_vecs, x_graph_vecs), y_graphs, y_tensors, y_orders)
-        return loss, 0, wacc, iacc, tacc, sacc
+        loss, wacc, iacc, tacc, sacc = self.decoder((root_vecs, root_vecs, root_vecs), graphs, tensors, orders)
+        return loss + beta * kl_div, kl_div.item(), wacc, iacc, tacc, sacc
 
 
 class HierVGNN(nn.Module):

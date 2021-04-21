@@ -33,4 +33,4 @@ if __name__ == "__main__":
         vocab |= c
 
     for (x,y),c in vocab:
-        print(x, y, c)
+        print(x, y)

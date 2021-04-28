@@ -51,9 +51,13 @@ mkdir ckpt/finetune
 python finetune_generator.py --train ${ACTIVE_MOLECULES} --vocab data/chembl/vocab.txt --generative_model ckpt/chembl-pretrained/model.ckpt --chemprop_model ${YOUR_PROPERTY_PREDICTOR} --min_similarity 0.1 --max_similarity 0.5 --nsample 10000 --epoch 10 --threshold 0.5 --save_dir ckpt/finetune
 ```
 Here `${ACTIVE_MOLECULES}` should contain a list of experimentally verified active molecules. 
+
 `${YOUR_PROPERTY_PREDICTOR}` should be a directory containing saved chemprop model checkpoint. 
+
 `--max_similarity 0.5` means any novel molecule should have nearest neighbor similarity lower than 0.5 to any known active molecules in ${ACTIVE_MOLECULES}` file.
+
 `--nsample 10000` means to sample 10000 molecules in each epoch. 
+
 `--threshold 0.5` is the activity threshold. A molecule is considered as active if its predicted chemprop score is greater than 0.5.
 
 In each epoch, generated active molecules are saved in `ckpt/finetune/good_molecules.${epoch}`. All the novel active molecules are saved in `ckpt/finetune/new_molecules.${epoch}`

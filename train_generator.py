@@ -38,7 +38,7 @@ parser.add_argument('--dropout', type=float, default=0.0)
 parser.add_argument('--lr', type=float, default=1e-3)
 parser.add_argument('--clip_norm', type=float, default=5.0)
 parser.add_argument('--step_beta', type=float, default=0.001)
-parser.add_argument('--max_beta', type=float, default=0.5)
+parser.add_argument('--max_beta', type=float, default=1.0)
 parser.add_argument('--warmup', type=int, default=10000)
 parser.add_argument('--kl_anneal_iter', type=int, default=2000)
 

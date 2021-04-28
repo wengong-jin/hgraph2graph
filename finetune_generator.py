@@ -5,6 +5,9 @@ import torch.optim.lr_scheduler as lr_scheduler
 from torch.utils.data import DataLoader
 
 import rdkit
+from rdkit import Chem, DataStructs
+from rdkit.Chem import AllChem
+
 import math, random, sys
 import numpy as np
 import argparse
@@ -99,9 +102,11 @@ if __name__ == "__main__":
 
     parser.add_argument('--lr', type=float, default=1e-3)
     parser.add_argument('--clip_norm', type=float, default=5.0)
-    parser.add_argument('--epoch', type=int, default=50)
+    parser.add_argument('--epoch', type=int, default=10)
     parser.add_argument('--inner_epoch', type=int, default=10)
     parser.add_argument('--threshold', type=float, default=0.3)
+    parser.add_argument('--min_similarity', type=float, default=0.1)
+    parser.add_argument('--max_similarity', type=float, default=0.5)
     parser.add_argument('--nsample', type=int, default=10000)
 
     args = parser.parse_args()
@@ -118,6 +123,8 @@ if __name__ == "__main__":
 
     score_func = Chemprop(args.chemprop_model)
     good_smiles = train_smiles
+    train_mol = [Chem.MolFromSmiles(s) for s in train_smiles]
+    train_fps = [AllChem.GetMorganFingerprintAsBitVect(x, 2, 2048) for x in train_mol]
 
     model = HierVAE(args).cuda()
     optimizer = optim.Adam(model.parameters(), lr=args.lr)
@@ -135,7 +142,7 @@ if __name__ == "__main__":
         print(f'Epoch {epoch} training...')
         for _ in range(args.inner_epoch):
             meters = np.zeros(6)
-            dataloader = DataLoader(dataset, batch_size=1, collate_fn=lambda x:x[0], shuffle=True)
+            dataloader = DataLoader(dataset, batch_size=1, collate_fn=lambda x:x[0], shuffle=True, num_workers=16)
             for batch in tqdm(dataloader):
                 model.zero_grad()
                 loss, kl_div, wacc, iacc, tacc, sacc = model(*batch, beta=beta)
@@ -159,10 +166,25 @@ if __name__ == "__main__":
 
         print(f'Epoch {epoch} filtering...')
         scores = score_func.predict(decoded_smiles)
-        good_entries = [(s,p) for s,p in zip(decoded_smiles, scores) if p >= args.threshold]
-        print(f'Discovered {len(good_entries)} active molecules')
-        good_smiles += [s for s,p in good_entries]
-        with open(os.path.join(args.save_dir, f"new_molecules.{epoch}"), 'w') as f:
-            for s, p in zip(decoded_smiles, scores):
-                print(s, p, file=f)
+        outputs = [(s,p) for s,p in zip(decoded_smiles, scores) if p >= args.threshold]
+        print(f'Discovered {len(outputs)} active molecules')
 
+        novel_entries = []
+        good_entries = []
+        for s, p in outputs:
+            mol = Chem.MolFromSmiles(s)
+            fps = AllChem.GetMorganFingerprintAsBitVect(mol, 2, 2048)
+            sims = np.array(DataStructs.BulkTanimotoSimilarity(fps, train_fps))
+            good_entries.append((s, p, sims.max()))
+            if args.min_similarity <= sims.max() <= args.max_similarity:
+                novel_entries.append((s, p, sims.max()))
+                good_smiles.append(s)
+
+        print(f'Discovered {len(novel_entries)} novel active molecules')
+        with open(os.path.join(args.save_dir, f"new_molecules.{epoch}"), 'w') as f:
+            for s, p, sim in novel_entries:
+                print(s, p, sim, file=f)
+
+        with open(os.path.join(args.save_dir, f"good_molecules.{epoch}"), 'w') as f:
+            for s, p, sim in good_entries:
+                print(s, p, sim, file=f)

@@ -13,7 +13,7 @@ from tqdm.auto import tqdm
 
 from hgraph import *
 
-lg = rdkit.RDLogger.logger() 
+lg = rdkit.RDLogger.logger()
 lg.setLevel(rdkit.RDLogger.CRITICAL)
 
 parser = argparse.ArgumentParser()
@@ -54,7 +54,7 @@ print(args)
 torch.manual_seed(args.seed)
 random.seed(args.seed)
 
-vocab = [x.strip("\r\n ").split() for x in open(args.vocab)] 
+vocab = [x.strip("\r\n ").split() for x in open(args.vocab)]
 args.vocab = PairVocab(vocab)
 
 model = HierVAE(args).cuda()
@@ -93,14 +93,14 @@ for epoch in range(args.epoch):
         nn.utils.clip_grad_norm_(model.parameters(), args.clip_norm)
         optimizer.step()
 
-        meters = meters + np.array([kl_div, loss.item(), wacc * 100, iacc * 100, tacc * 100, sacc * 100])
+        meters = meters + np.array([kl_div, loss.item(), wacc.cpu() * 100, iacc.cpu() * 100, tacc.cpu() * 100, sacc.cpu() * 100])
 
         if total_step % args.print_iter == 0:
             meters /= args.print_iter
             print("[%d] Beta: %.3f, KL: %.2f, loss: %.3f, Word: %.2f, %.2f, Topo: %.2f, Assm: %.2f, PNorm: %.2f, GNorm: %.2f" % (total_step, beta, meters[0], meters[1], meters[2], meters[3], meters[4], meters[5], param_norm(model), grad_norm(model)))
             sys.stdout.flush()
             meters *= 0
-        
+
         if total_step % args.save_iter == 0:
             ckpt = (model.state_dict(), optimizer.state_dict(), total_step, beta)
             torch.save(ckpt, os.path.join(args.save_dir, f"model.ckpt.{total_step}"))

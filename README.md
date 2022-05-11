@@ -7,6 +7,7 @@ First install the dependencies via conda:
  * PyTorch >= 1.0.0
  * networkx
  * RDKit >= 2019.03
+ * tqdm
  * numpy
  * Python >= 3.6
 
@@ -41,7 +42,7 @@ python train_generator.py --train train_processed/ --vocab data/chembl/vocab.txt
 
 4. Sample molecules from a model checkpoint
 ```
-python generate.py --vocab data/chembl/vocab.txt --model ckpt/chembl-pretrained/model.ckpt --nsamples 1000
+python generate.py --vocab data/chembl/vocab.txt --model ckpt/chembl-pretrained/model.ckpt --nsample 1000
 ```
 
 ## Property-guided molcule generation procedure (a.k.a. finetuning)

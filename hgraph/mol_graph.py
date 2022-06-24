@@ -290,4 +290,3 @@ if __name__ == "__main__":
         # print(nx.get_node_attributes(hmol.mol_tree, 'inter_label'))
         # print(nx.get_node_attributes(hmol.mol_tree, 'assm_cands'))
         # print(hmol.order)
-

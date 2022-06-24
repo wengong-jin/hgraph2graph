@@ -3,6 +3,7 @@ import sys
 import Levenshtein
 from multiprocessing import Pool
 
+
 def get_leaves(mol):
     leaf_atoms = [atom.GetIdx() for atom in mol.GetAtoms() if atom.GetDegree() == 1]
 
@@ -11,7 +12,7 @@ def get_leaves(mol):
         a1 = bond.GetBeginAtom().GetIdx()
         a2 = bond.GetEndAtom().GetIdx()
         if not bond.IsInRing():
-            clusters.append( set([a1,a2]) )
+            clusters.append(set([a1, a2]))
 
     rings = [set(x) for x in Chem.GetSymmSSSR(mol)]
     clusters.extend(rings)
@@ -19,12 +20,14 @@ def get_leaves(mol):
     leaf_rings = []
     for r in rings:
         inters = [c for c in clusters if r != c and len(r & c) > 0]
-        if len(inters) == 1: leaf_rings.extend( [i for i in r if mol.GetAtomWithIdx(i).GetDegree() == 2] )
+        if len(inters) == 1:
+            leaf_rings.extend([i for i in r if mol.GetAtomWithIdx(i).GetDegree() == 2])
 
     return leaf_atoms + leaf_rings
 
+
 def align(xy_tuple):
-    x,y = xy_tuple
+    x, y = xy_tuple
     xmol, ymol = Chem.MolFromSmiles(x), Chem.MolFromSmiles(y)
     x = Chem.MolToSmiles(xmol, isomericSmiles=False)
     xmol = Chem.MolFromSmiles(x)
@@ -32,7 +35,7 @@ def align(xy_tuple):
     xleaf = get_leaves(xmol)
     yleaf = get_leaves(ymol)
 
-    best_i,best_j = 0,0
+    best_i, best_j = 0, 0
     best = 1000000
     for i in xleaf:
         for j in yleaf:
@@ -44,12 +47,15 @@ def align(xy_tuple):
                 best_i, best_j = i, j
                 best = dist
 
-    return Chem.MolToSmiles(xmol, rootedAtAtom=best_i, isomericSmiles=False), Chem.MolToSmiles(ymol, rootedAtAtom=best_j, isomericSmiles=False)
+    return (
+        Chem.MolToSmiles(xmol, rootedAtAtom=best_i, isomericSmiles=False),
+        Chem.MolToSmiles(ymol, rootedAtAtom=best_j, isomericSmiles=False),
+    )
+
 
 if __name__ == "__main__":
     data = [line.split()[:2] for line in sys.stdin]
     pool = Pool(30)
     aligned_data = pool.map(align, data)
-    for x,y in aligned_data:
-        print(x,y)
-
+    for x, y in aligned_data:
+        print(x, y)

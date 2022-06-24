@@ -107,4 +107,3 @@ def count_inters(s):
     mol = Chem.MolFromSmiles(s)
     inters = [a for a in mol.GetAtoms() if a.GetAtomMapNum() > 0]
     return max(1, len(inters))
-

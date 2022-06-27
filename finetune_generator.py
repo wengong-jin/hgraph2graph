@@ -35,9 +35,9 @@ class Chemprop(object):
             for fname in files:
                 if fname.endswith(".pt"):
                     fname = os.path.join(root, fname)
-                    scaler, features_scaler = load_scalers(fname)
-                    self.scalers.append(scaler)
-                    self.features_scalers.append(features_scaler)
+                    # scaler, features_scaler = load_scalers(fname)
+                    # self.scalers.append(scaler)
+                    # self.features_scalers.append(features_scaler)
                     model = load_checkpoint(fname)
                     self.checkpoints.append(model)
 
@@ -164,10 +164,10 @@ if __name__ == "__main__":
                     [
                         kl_div,
                         loss.item(),
-                        wacc * 100,
-                        iacc * 100,
-                        tacc * 100,
-                        sacc * 100,
+                        wacc.item() * 100,
+                        iacc.item() * 100,
+                        tacc.item() * 100,
+                        sacc.item() * 100,
                     ]
                 )
 

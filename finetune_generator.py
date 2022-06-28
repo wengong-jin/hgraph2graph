@@ -35,9 +35,14 @@ class Chemprop(object):
             for fname in files:
                 if fname.endswith(".pt"):
                     fname = os.path.join(root, fname)
-                    # scaler, features_scaler = load_scalers(fname)
-                    # self.scalers.append(scaler)
-                    # self.features_scalers.append(features_scaler)
+                    (
+                        scaler,
+                        features_scaler,
+                        unused_scaler_1,
+                        unused_scaler_2,
+                    ) = load_scalers(fname)
+                    self.scalers.append(scaler)
+                    self.features_scalers.append(features_scaler)
                     model = load_checkpoint(fname)
                     self.checkpoints.append(model)
 
